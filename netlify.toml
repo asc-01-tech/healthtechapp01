@@ -1,7 +1,10 @@
 [build]
   base = "frontend"
-  command = "npm run build"
+  command = "npm install && node node_modules/vite/bin/vite.js build"
   publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "18"
 
 [[redirects]]
   from = "/*"
