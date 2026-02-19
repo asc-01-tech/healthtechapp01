@@ -152,73 +152,84 @@ def pure_python_parse(vcf_bytes: bytes) -> Dict[str, List[VariantRecord]]:
 
 def pysam_parse(vcf_bytes: bytes) -> Dict[str, List[VariantRecord]]:
     import pysam
+    import tempfile
+    import os
 
     gene_variants: Dict[str, List[VariantRecord]] = {g: [] for g in SUPPORTED_GENES}
 
-    # Use a temporary file because pysam needs a seekable stream or path
-    # But io.BytesIO usually works with recent pysam if opened correctly. 
-    # If not, we might fail here, but let's trust the existing pattern 
-    # or improve it if needed. 
-    # Actually, simpler to keep existing pattern but add GT check.
-    
-    with pysam.VariantFile(io.BytesIO(vcf_bytes)) as vcf:
-        for rec in vcf.fetch():
-            # Check genotype for the first sample
-            if not rec.samples:
-                continue
-                
-            # Get the first sample's data
-            sample_val = next(iter(rec.samples.values()))
-            gt = sample_val.get("GT")
-            
-            # gt is a tuple like (0, 0). If all alleles are 0 (ref) or None (missing), skip.
-            # e.g. (0, 0) -> skip. (0, 1) -> keep. (1, 1) -> keep.
-            if not gt:
-                continue
-                
-            is_variant = False
-            for allele in gt:
-                if allele is not None and allele > 0:
-                    is_variant = True
-                    break
-            
-            if not is_variant:
-                continue
+    # pysam requires a real file on disk — it calls fileno() internally which
+    # fails on in-memory BytesIO streams. Write to a NamedTemporaryFile instead.
+    tmp = tempfile.NamedTemporaryFile(suffix=".vcf", delete=False)
+    tmp_path = tmp.name
+    try:
+        tmp.write(vcf_bytes)
+        tmp.flush()
+        tmp.close()
 
-            info = dict(rec.info)
+        with pysam.VariantFile(tmp_path) as vcf:
+            for rec in vcf.fetch():
+                # Check genotype for the first sample
+                if not rec.samples:
+                    continue
 
-            gene = str(info.get("GENE", "")).strip().upper()
-            if gene not in SUPPORTED_GENES:
-                continue
+                # Get the first sample's data
+                sample_val = next(iter(rec.samples.values()))
+                gt = sample_val.get("GT")
 
-            star = str(info.get("STAR", info.get("HAPLOTYPE", ""))).strip()
+                # gt is a tuple like (0, 0). If all alleles are 0 (ref) or None (missing), skip.
+                if not gt:
+                    continue
 
-            rs_raw = str(info.get("RS", "")).strip()
-            if rs_raw and rs_raw != ".":
-                rsid = rs_raw if rs_raw.startswith("rs") else f"rs{rs_raw}"
-            elif rec.id and rec.id != ".":
-                rsid = next(
-                    (i for i in rec.id.split(";") if i.lower().startswith("rs")),
-                    ""
+                is_variant = False
+                for allele in gt:
+                    if allele is not None and allele > 0:
+                        is_variant = True
+                        break
+
+                if not is_variant:
+                    continue
+
+                info = dict(rec.info)
+
+                gene = str(info.get("GENE", "")).strip().upper()
+                if gene not in SUPPORTED_GENES:
+                    continue
+
+                star = str(info.get("STAR", info.get("HAPLOTYPE", ""))).strip()
+
+                rs_raw = str(info.get("RS", "")).strip()
+                if rs_raw and rs_raw != ".":
+                    rsid = rs_raw if rs_raw.startswith("rs") else f"rs{rs_raw}"
+                elif rec.id and rec.id != ".":
+                    rsid = next(
+                        (i for i in rec.id.split(";") if i.lower().startswith("rs")),
+                        ""
+                    )
+                else:
+                    rsid = ""
+
+                alt_str = ",".join(str(a) for a in rec.alts) if rec.alts else "."
+
+                record = VariantRecord(
+                    chrom=str(rec.chrom),
+                    pos=rec.pos,
+                    id=rec.id or ".",
+                    ref=str(rec.ref),
+                    alt=alt_str,
+                    gene=gene,
+                    star=star,
+                    rsid=rsid,
+                    raw_info={k: str(v) for k, v in info.items()}
                 )
-            else:
-                rsid = ""
 
-            alt_str = ",".join(str(a) for a in rec.alts) if rec.alts else "."
+                gene_variants[gene].append(record)
 
-            record = VariantRecord(
-                chrom=str(rec.chrom),
-                pos=rec.pos,
-                id=rec.id or ".",
-                ref=str(rec.ref),
-                alt=alt_str,
-                gene=gene,
-                star=star,
-                rsid=rsid,
-                raw_info={k: str(v) for k, v in info.items()}
-            )
-
-            gene_variants[gene].append(record)
+    finally:
+        # Always clean up the temp file from disk
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
 
     return gene_variants
 
