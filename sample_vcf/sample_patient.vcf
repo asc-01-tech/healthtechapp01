@@ -1,0 +1,30 @@
+##fileformat=VCFv4.2
+##fileDate=20260219
+##source=PharmaGuardSampleGenerator_v1.0
+##reference=GRCh38
+##FILTER=<ID=PASS,Description="All filters passed">
+##INFO=<ID=GENE,Number=1,Type=String,Description="HGNC gene symbol">
+##INFO=<ID=STAR,Number=1,Type=String,Description="Star allele designation (CPIC nomenclature)">
+##INFO=<ID=RS,Number=1,Type=String,Description="dbSNP rsID number (without rs prefix)">
+##INFO=<ID=FUNCTION,Number=1,Type=String,Description="Allele function annotation">
+##INFO=<ID=CPIC_CLASS,Number=1,Type=String,Description="CPIC allele functional class">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency in gnomAD global population">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Total read depth at locus">
+##INFO=<ID=GQ,Number=1,Type=Integer,Description="Genotype quality score">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA19109
+chr22	42522613	rs3892097	C	T	99	PASS	GENE=CYP2D6;STAR=*4;RS=3892097;FUNCTION=no_function;CPIC_CLASS=nonfunctional;AF=0.184;DP=45;GQ=99	GT:DP:GQ:AD	1/1:45:99:0,45
+chr22	42524217	rs5030655	delA	del	99	PASS	GENE=CYP2D6;STAR=*4;RS=5030655;FUNCTION=no_function;CPIC_CLASS=nonfunctional;AF=0.019;DP=38;GQ=99	GT:DP:GQ:AD	1/1:38:99:0,38
+chr10	94942290	rs4244285	G	A	99	PASS	GENE=CYP2C19;STAR=*2;RS=4244285;FUNCTION=no_function;CPIC_CLASS=nonfunctional;AF=0.152;DP=52;GQ=99	GT:DP:GQ:AD	1/1:52:99:0,52
+chr10	94981302	rs4986893	G	A	99	PASS	GENE=CYP2C19;STAR=*3;RS=4986893;FUNCTION=no_function;CPIC_CLASS=nonfunctional;AF=0.037;DP=41;GQ=90	GT:DP:GQ:AD	0/0:41:90:41,0
+chr10	94942290	rs4244285	G	A	95	PASS	GENE=CYP2C19;STAR=*2;RS=4244285;FUNCTION=no_function;CPIC_CLASS=nonfunctional;AF=0.152;DP=49;GQ=95	GT:DP:GQ:AD	1/1:49:95:0,49
+chr10	96702047	rs1799853	C	T	99	PASS	GENE=CYP2C9;STAR=*2;RS=1799853;FUNCTION=decreased_function;CPIC_CLASS=decreased_function;AF=0.123;DP=60;GQ=99	GT:DP:GQ:AD	0/1:60:99:30,30
+chr10	96741053	rs1057910	A	C	99	PASS	GENE=CYP2C9;STAR=*3;RS=1057910;FUNCTION=no_function;CPIC_CLASS=nonfunctional;AF=0.068;DP=55;GQ=99	GT:DP:GQ:AD	0/1:55:99:27,28
+chr12	21176804	rs4149056	T	C	99	PASS	GENE=SLCO1B1;STAR=*5;RS=4149056;FUNCTION=decreased_function;CPIC_CLASS=decreased_function;AF=0.156;DP=48;GQ=99	GT:DP:GQ:AD	1/1:48:99:0,48
+chr12	21176804	rs4149056	T	C	99	PASS	GENE=SLCO1B1;STAR=*15;RS=4149056;FUNCTION=decreased_function;CPIC_CLASS=decreased_function;AF=0.156;DP=48;GQ=99	GT:DP:GQ:AD	1/1:48:99:0,48
+chr6	18128029	rs1800462	G	C	99	PASS	GENE=TPMT;STAR=*3A;RS=1800462;FUNCTION=no_function;CPIC_CLASS=nonfunctional;AF=0.033;DP=42;GQ=99	GT:DP:GQ:AD	0/1:42:99:21,21
+chr6	18128029	rs1800460	A	C	99	PASS	GENE=TPMT;STAR=*3A;RS=1800460;FUNCTION=no_function;CPIC_CLASS=nonfunctional;AF=0.033;DP=40;GQ=97	GT:DP:GQ:AD	0/1:40:97:20,20
+chr1	97981343	rs3918290	G	A	99	PASS	GENE=DPYD;STAR=*2A;RS=3918290;FUNCTION=no_function;CPIC_CLASS=nonfunctional;AF=0.009;DP=36;GQ=99	GT:DP:GQ:AD	0/1:36:99:18,18
