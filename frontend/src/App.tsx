@@ -4,7 +4,10 @@ import VcfUploader, { type VcfValidationState } from './components/VcfUploader';
 import DrugInput from './components/DrugInput';
 import ResultCard from './components/ResultCard';
 
-const API_BASE = import.meta.env.VITE_API_URL ?? '';
+// VITE_API_URL must be set to the Render backend URL in Vercel environment variables.
+// e.g., https://pharma-guard-api.onrender.com
+// In local dev, leave it unset — Vite proxy will forward /analyze to localhost:8000.
+const API_BASE: string = import.meta.env.VITE_API_URL ?? '';
 
 export default function App() {
     const [vcfFile, setVcfFile] = useState<File | null>(null);
@@ -52,8 +55,9 @@ export default function App() {
         formData.append('drugs', drugs.join(','));
 
         try {
-            // Updated to use Netlify Functions path
-            const endpoint = API_BASE ? `${API_BASE}/analyze` : '/.netlify/functions/analyze';
+            // In production (Vercel): API_BASE = Render backend URL → hits /analyze directly.
+            // In local dev: API_BASE is empty → Vite proxy forwards /analyze to localhost:8000.
+            const endpoint = `${API_BASE}/analyze`;
             const res = await fetch(endpoint, {
                 method: 'POST',
                 body: formData,

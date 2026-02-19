@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: pharma-guard-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: GEMINI_API_KEY
+        sync: false   # Set this manually in Render dashboard
+      - key: ALLOWED_ORIGINS
+        sync: false   # Set to your Vercel frontend URL after deploying frontend
+      - key: MAX_VCF_SIZE_MB
+        value: 5
+    healthCheckPath: /health
