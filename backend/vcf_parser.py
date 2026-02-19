@@ -103,11 +103,21 @@ def pure_python_parse(vcf_bytes: bytes) -> Dict[str, List[VariantRecord]]:
             continue
 
         cols = line.split("\t")
-        if len(cols) < 8:
+        if len(cols) < 10:  # Need at least CHROM...FORMAT + 1 Sample
             continue
 
         chrom, pos_str, id_col, ref, alt = cols[:5]
         info_str = cols[7]
+        # format_col = cols[8]
+        sample_col = cols[9]
+
+        # check genotype
+        # GT is always the first field in the FORMAT/SAMPLE data by VCF spec
+        gt_str = sample_col.split(":")[0]
+        
+        # normalized check for 0/0, 0|0, ., ./.
+        if gt_str in ["0/0", "0|0", ".", "./."]:
+            continue
 
         try:
             pos = int(pos_str)
@@ -145,8 +155,36 @@ def pysam_parse(vcf_bytes: bytes) -> Dict[str, List[VariantRecord]]:
 
     gene_variants: Dict[str, List[VariantRecord]] = {g: [] for g in SUPPORTED_GENES}
 
+    # Use a temporary file because pysam needs a seekable stream or path
+    # But io.BytesIO usually works with recent pysam if opened correctly. 
+    # If not, we might fail here, but let's trust the existing pattern 
+    # or improve it if needed. 
+    # Actually, simpler to keep existing pattern but add GT check.
+    
     with pysam.VariantFile(io.BytesIO(vcf_bytes)) as vcf:
         for rec in vcf.fetch():
+            # Check genotype for the first sample
+            if not rec.samples:
+                continue
+                
+            # Get the first sample's data
+            sample_val = next(iter(rec.samples.values()))
+            gt = sample_val.get("GT")
+            
+            # gt is a tuple like (0, 0). If all alleles are 0 (ref) or None (missing), skip.
+            # e.g. (0, 0) -> skip. (0, 1) -> keep. (1, 1) -> keep.
+            if not gt:
+                continue
+                
+            is_variant = False
+            for allele in gt:
+                if allele is not None and allele > 0:
+                    is_variant = True
+                    break
+            
+            if not is_variant:
+                continue
+
             info = dict(rec.info)
 
             gene = str(info.get("GENE", "")).strip().upper()

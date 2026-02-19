@@ -52,7 +52,9 @@ export default function App() {
         formData.append('drugs', drugs.join(','));
 
         try {
-            const res = await fetch(`${API_BASE}/analyze`, {
+            // Updated to use Netlify Functions path
+            const endpoint = API_BASE ? `${API_BASE}/analyze` : '/.netlify/functions/analyze';
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 body: formData,
             });

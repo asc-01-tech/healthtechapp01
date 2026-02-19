@@ -32,24 +32,37 @@ def _build_prompt(
 ) -> str:
     """Construct the structured prompt sent to the LLM."""
     alt_names = ", ".join(a.get("name", "") for a in alternatives) if alternatives else "none identified"
-    return f"""You are a clinical pharmacogenomics specialist writing a patient-friendly report section.
+    return f"""You are a pharmacogenomics clinical interpretation engine.
+Your task is to analyze a humman pharmacogenomics result and generate a scientifically accurate, conservative, CPIC compliant report segment.
 
-Based on the following pre-computed clinical findings (DO NOT change any of these values):
+CORE RULES:
+1. Do not assume diplotypes unless fully supported.
+2. If variants are absent or homozygous reference, state that no actionable alleles were detected.
+3. Interpret genotype explicitly. For every clinically relevant allele mentioned, avoid implying it was tested if not provided.
+4. Avoid absolute safety language. Never use words like 'safe', 'no risk', or 'guaranteed'.
+5. Use clinical phrasing: "No actionable pharmacogenomic variants detected", "Standard dosing per CPIC guidelines recommended".
+6. For high risk genes (DPYD, TPMT, SLCO1B1, CYP2D6) always add: "Non genetic risk factors still apply. Clinical monitoring remains mandatory."
+7. Follow CPIC guideline hierarchy (Level 1A > 1B).
+
+CONTEXT:
 - Drug: {drug}
 - Primary Gene: {gene}
-- Diplotype: {diplotype}
+- Diplotype: {diplotype if diplotype and diplotype != 'Unknown' else 'Not determined (assuming *1/*1 based on absence of variants)'}
 - Metabolizer Phenotype: {phenotype}
 - Risk Classification: {risk_label} (Severity: {severity})
 - Clinical Action: {action}
-- Alternative Medications Identified: {alt_names}
+- Available Alternatives: {alt_names}
 
-Write a concise, plain-English explanation (3–4 sentences) that:
-1. Explains what the patient's genetic variant means for this drug
-2. Confirms the risk level in non-technical language
-3. Briefly mentions why the alternatives are relevant
+TASK:
+Write a clinical interpretation summary (max 4-5 sentences) that:
+- States the phenotype clearly based on the provided data.
+- Explains the implications for {drug} metabolism/safety.
+- Provides the specific dosing recommendation (e.g. "Standard dosing", "Reduce dose by 50%").
+- Lists any explicit monitoring requirements.
+- Mentions pertinent limitations (e.g. "Phasing not performed", "Structural variants not assessed").
 
-Do NOT suggest different risk levels or dosages. Do NOT use jargon without explanation.
-Return ONLY the explanation text, no headers or markdown."""
+OUTPUT FORMAT:
+Return ONLY the text paragraph. Do not use Markdown headers. Do not include 'Raw JSON' or other artifacts. Keep the tone professional and suitable for a clinician."""
 
 
 def _fallback_explanation(

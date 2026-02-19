@@ -6,6 +6,11 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      '/.netlify/functions/analyze': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/\.netlify\/functions/, ''),
+      },
       '/analyze': {
         target: 'http://localhost:8000',
         changeOrigin: true,
